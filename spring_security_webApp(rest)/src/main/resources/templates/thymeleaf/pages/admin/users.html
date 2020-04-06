@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+          integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.js"
+            integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU="
+            crossorigin="anonymous">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+            integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+            crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+            integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+            crossorigin="anonymous">
+    </script>
+
+    <script th:src="@{js/getallusers.js}"></script>
+    <script th:src="@{js/getallrolesforadd.js}"></script>
+    <script th:src="@{js/edituser.js}"></script>
+    <script th:src="@{js/deleteuser.js}"></script>
+    <script th:src="@{js/getallrolesformodal.js}"></script>
+    <script th:src="@{js/getcheckedroles.js}"></script>
+    /*<!--<script th:src="@{js/main.js}"></script>-->*/
+
+    <title>Users</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<style>
+    /*растягиваем на весь экран*/
+    html, body {
+        height: 100%;
+        overflow: hidden;
+    }
+
+    #left {
+        height: 100%;
+        background: #F5F5F5;
+    }
+
+    #right {
+        height: 100%;
+        background: #E7EAED;
+    }
+
+    #warningAddUsername {
+        color: red;
+    }
+
+    #warningAddPassword {
+        color: red;
+    }
+
+    #warningAddRoles {
+        color: red;
+    }
+
+    #warningEditUsername {
+        color: red;
+    }
+
+    #warningEditRoles {
+        color: red;
+    }
+</style>
+
+<!--navbar-->
+<nav class="navbar navbar-default" style="background-color: #303030">
+    <div class="navbar-header">
+        <a href="#" class="navbar-brand" style="color: lightgray">NameProject</a>
+    </div>
+    <form class="form-inline my-2 my-lg-0">
+        <button type="button" class="btn btn-link"><a href="/perform_logout" style="color: lightgray">Logout</a>
+        </button>
+    </form>
+</nav>
+
+<!--страница-->
+<div class="container-fluid h-100">
+    <div class="row justify-content-center h-100">
+
+        <!--меню слева-->
+        <div class="col-3 hidden-md-down pl-0 pr-0" id="left">
+            <br>
+
+            <!--лист-->
+            <div class="list-group">
+                <a href="/admin/users" class="list-group-item list-group-item-action list-group-item-light">Admin</a>
+                <!--на основе ролей показываем/скрываем страницы-->
+                <div sec:authorize="hasRole('ROLE_USER')">
+                    <a href="/user/user" class="list-group-item list-group-item-action list-group-item-light">User</a>
+                </div>
+            </div>
+        </div>
+
+        <!--основной контент справа-->
+        <div class="col-9 hidden-md-down pl-3 pr-3" id="right">
+            <p class="text-left">
+            <h2>Admin panel</h2></p>
+            <div align="center">
+
+                <!--навигация таблица всех юзеров/форма добавления нового юзера-->
+                <nav>
+                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
+                        <a class="nav-item nav-link active" id="nav-allusers-tab" data-toggle="tab" href="#nav-home"
+                           role="tab" aria-controls="nav-home" aria-selected="true">User table</a>
+                        <a class="nav-item nav-link" id="nav-adduser-tab" data-toggle="tab" href="#nav-profile"
+                           role="tab" aria-controls="nav-profile" aria-selected="false">New user</a>
+                    </div>
+                </nav>
+                <div class="tab-content" style="background-color: white" id="nav-tabContent">
+
+                    <!--таблица всех юзеров-->
+                    <div class="tab-pane fade show active" id="nav-home" role="tabpanel"
+                         aria-labelledby="nav-allusers-tab">
+                        <div class="text-left pl-3 h-100" style="background-color: #F2F2F2">
+                            <tr class="table-secondary"><p class="font-weight-bold">All users</p></tr>
+                        </div>
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th scope="col">ID</th>
+                                <th scope="col">Username</th>
+                                <th scope="col">Roles</th>
+                                <th scope="col">Edit</th>
+                                <th scope="col">Delete</th>
+                            </tr>
+                            </thead>
+                            <tbody id="users-table">
+                            <!--см. ajax запрос-->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!--модалка-->
+                    <div class="modal fade bd-example-modal-md" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-md" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="modal-title">Edit user: </h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form>
+                                        <div class="form-group">
+                                            <!--скрыл id чтобы передать в js-->
+                                            <input type="hidden" id="modal-hidden-id" name="id">
+                                            <div class="col-md-8 center-block text-center">
+                                                <label for="modalEditId" class="col-form-label">
+                                                    <p class="font-weight-bold">ID: </p>
+                                                </label>
+                                                <input type="text" class="form-control" id="modalEditId" disabled>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-md-8 center-block text-center">
+                                                <label for="modalEditUsername" class="col-form-label">
+                                                    <p class="font-weight-bold">Username: </p>
+                                                </label>
+                                                <input type="text" class="form-control" id="modalEditUsername" required="required">
+                                            </div>
+                                        </div>
+                                        <span id="warningEditUsername"></span>
+                                        <br>
+                                        <div class="form-group">
+                                            <div class="col-md-8 center-block text-center">
+                                                <label for="modalEditNewPassword" class="col-form-label">
+                                                    <p class="font-weight-bold">Password: </p>
+                                                </label>
+                                                <input type="text" class="form-control" id="modalEditNewPassword"
+                                                       placeholder="New password">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <div class="col-md-12 center-block text-center">
+                                                <label class="col-form-lable">
+                                                    <p class="font-weight-bold">Roles: </p>
+                                                </label>
+                                                <div class="col-md-12 center-block text-center" id="edit-all-roles">
+                                                    <!--см. ajax запрос-->
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <span id="warningEditRoles"></span>
+                                        <br>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close
+                                            </button>
+                                            <button type="button" id="btnSaveEdit" class="btn btn-primary">Save</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--форма добавления нового юзера-->
+                    <div class="tab-pane fade" id="nav-profile" role="tabpanel" aria-labelledby="nav-adduser-tab">
+                        <div class="conteiner-fluid text-left pl-3" style="background-color: #F2F2F2">
+                            <tr class="table-secondary"><p class="font-weight-bold">Add new user</p></tr>
+                        </div>
+                        <br>
+                        <form id="formAdd">
+                            <div class="col">
+                                <label for="inputAddUsername" class="col-sm-2 col-form-label">
+                                    <a class="font-weight-bold">Username: </a>
+                                </label>
+                                <div class="col-sm-4">
+                                    <input type="text" class="form-control" id="inputAddUsername" placeholder="Username" size="40">
+                                </div>
+                            </div>
+                            <span id="warningAddUsername"></span>
+                            <br>
+                            <div class="col">
+                                <label for="inputAddPassword" class="col-sm-2 col-form-label">
+                                    <p class="font-weight-bold">Password: </p>
+                                </label>
+                                <div class="col-sm-4">
+                                    <input type="password" class="form-control" id="inputAddPassword" placeholder="Password" size="40">
+                                </div>
+                            </div>
+                            <span id="warningAddPassword"></span>
+                            <br>
+                            <div class="col">
+                                <div class="col-sm-2">
+                                    <p class="font-weight-bold">Roles: </p>
+                                </div>
+                                <div class="col-sm-10" id="add-all-roles">
+                                    <!--см. ajax-->
+                                </div>
+                            </div>
+                            <span id="warningAddRoles"></span>
+                            <br><br>
+                            <div class="form-group">
+                                <div class="col-sm-10">
+                                    <button type="button" id="btnAddUser" class="btn btn-success">Add new user
+                                    </button>
+                                </div>
+                                <br>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Подключаю jQuery CDN с Ajax -->
+
+
+<!--<script type="text/javascript" th:src="@{js/main.js}"></script>-->
+<!--<script src="/js/main.js"></script>-->
+
+
+<!--<script>
+
+    //GET all users
+    getAllUsers();
+
+    //функция получения всех юзеров
+    function getAllUsers() {
+        $.getJSON("http://localhost:8080/admin/users/rest", function (data) {
+            var userRow = '';
+            var userId = '';
+            $.each(data, function (key, value) {
+                if (key = "id") {
+                    userRow += '<tr>';
+                    userRow += '<td>' + value.id + '</td>';
+                    userId = value.id;
+                }
+                if (key = "username") {
+                    userRow += '<td>' + value.username + '</td>';
+                }
+                if (key = "roles") {
+                    var rolesObj = value.roles;
+                    var rolesName = '';
+                    $.each(rolesObj, function (key2, value2) {
+                        if (key2 = "name") {
+                            rolesName += value2.name + ';' + '&nbsp;&nbsp;&nbsp;';
+                        }
+                    });
+                    userRow += '<td>' + rolesName + '</td>';
+                }
+                userRow += '<td><a class="btn btn-primary" id="btnEditUser' + value.id + '" data-toggle="modal" data-target=".bd-example-modal-md" onclick="editUser(' + value.id + ')" role="button">Edit</a></td>';
+                userRow += '<td><a class="btn btn-primary" id="btnDeleteUser" onclick="deleteUser(' + value.id + ')" role="button">Delete</a>' + '</td>';
+                userRow += '</tr>';
+            });
+            $('#users-table').append(userRow);
+        });
+    }
+
+    //GET all unchecked roles from server for Add page (показываем роли с сервера на странице добавления юзера)
+    $('#nav-adduser-tab').click(function () {
+        $('#add-all-roles').empty();
+        getAllRolesForAdd();
+    });
+
+    //POST user
+    $('#btnAddUser').click(function () {
+        //валидируем форму Add
+        if ($('#inputAddUsername').val().length < 3) {
+            $('#warningAddUsername').text("Username not valid").show().fadeOut(2000);
+        } else if ($('#inputAddPassword').val().length < 3) {
+            $('#warningAddPassword').text("Password not valid").show().fadeOut(2000);
+        } else if ($('input[type="checkbox"]:checked').length < 1) {
+            $('#warningAddRoles').text("Roles not valid").show().fadeOut(2000);
+        } else {
+            var addUser = {};
+            addUser.username = $('#inputAddUsername').val();
+            addUser.password = $('#inputAddPassword').val();
+            addUser.roles = getCheckedRoles();
+            $.ajax({
+                url: 'http://localhost:8080/admin/users/add/rest/',
+                method: 'POST',
+                data: JSON.stringify(addUser),
+                contentType: 'application/json; charset=utf-8',
+                success: function () {
+                    var table = $('#users-table');
+                    table.empty();
+                    $('#nav-allusers-tab').tab('show');
+                    getAllUsers();
+                    //очищаем форму Add
+                    $('#inputAddUsername').val('');
+                    $('#inputAddPassword').val('');
+                    //очищаем чекбоксы тк функция вызывается двумя объектами и роли в JSON добавляются
+                    $('#add-all-roles').empty();
+                    //старый вариант очистки чекбоксов
+                    // $('#chbAddRoleAdmin').prop('checked', false);
+                    // $('#chbAddRoleUser').prop('checked', false);
+                },
+                error: function (error) {
+                    alert("error Add: " + error);
+                }
+            });
+        }
+    });
+
+    //GET edit
+    function editUser(id) {
+        $.ajax({
+            url: 'http://localhost:8080/admin/users/edit/rest/' + id,
+            method: 'GET',
+            success: function (editData) {
+                $('#modal-title').text('Edit user: ' + editData.username);
+                $('#modalEditId').val(editData.id);
+                $('#modalEditUsername').val(editData.username);
+                //пустая строка для ввода нового пароля
+                var emptyPassword = '';
+                $('#modalEditNewPassword').val(emptyPassword);
+
+                var editUserString = JSON.stringify(editData);
+                $('#edit-all-roles').empty();
+                //передаем объект юзера в виде строки чтобы достать чекбоксы с галками
+                getAllRolesForModal(editUserString);
+            },
+            error: function (error) {
+                alert(error);
+            }
+        });
+    }
+
+    //PUT edit
+    $('#btnSaveEdit').click(function () {
+        //валидируем форму Edit
+        if ($('#modalEditUsername').val().length < 3) {
+            $('#warningEditUsername').text("Username not valid").show().fadeOut(2000);
+        } else if (($('input[type="checkbox"]:checked')).length < 1) { //?????? УПРОСТИТЬ
+            $('#warningEditRoles').text("Roles not valid").show().fadeOut(2000);
+        } else {
+            //формируем JSON
+            var editUser = {};
+            editUser.id = $('#modalEditId').val();
+            editUser.username = $('#modalEditUsername').val();
+            editUser.password = $('#modalEditNewPassword').val();
+            editUser.roles = getCheckedRoles();
+            $.ajax({
+                url: "http://localhost:8080/admin/users/edit/rest",
+                method: 'PUT',
+                data: JSON.stringify(editUser),
+                contentType: 'application/json; charset=utf-8',
+                success: function () {
+                    var table = $('#users-table');
+                    table.empty();
+                    $('#exampleModal').modal('hide');
+                    $('#nav-allusers-tab').tab('show');
+                    getAllUsers();
+                    //очищаем чекбоксы тк функция вызывается двумя объектами (Add and Edit) и роли в JSON добавляются
+                    $('#edit-all-roles').empty();
+                },
+                error: function (error) {
+                    alert(error);
+                }
+            })
+        }
+    });
+
+    //DELETE user
+    function deleteUser(id) {
+        $.ajax({
+            url: 'http://localhost:8080/admin/users/delete/rest/' + id,
+            method: 'DELETE',
+            success: function () {
+                //стираем таблицу и заново отображаем всех юзеров
+                var table = $('#users-table');
+                table.empty();
+                getAllUsers();
+            },
+            error: function (error) {
+                alert(error);
+            }
+        })
+    }
+
+    //получаем все роли (unchecked чекбоксы) с сервера для Add
+    function getAllRolesForAdd() {
+        var roleRow = '';
+        $.getJSON("http://localhost:8080/admin/users/roles/rest", function (data) {
+            $.each(data, function (key, value) {
+                roleRow += '<div class="form-check-inline">';
+                roleRow += '<label class="form-check-label">';
+                roleRow += '<input type="checkbox" ';
+                roleRow += 'id="' + value.id + '" value="' + value.name + '" class="form-check-input">' + value.name + ''; //убрал chbRole у id
+                roleRow += '</label>';
+                roleRow += '</div>';
+            });
+            $('#add-all-roles').append(roleRow);
+        });
+    }
+
+    //получаем все роли (unchecked чекбоксы) для модалки и проставляем галки
+    function getAllRolesForModal(editUserString) {
+        var roleRow = '';
+        $.getJSON("http://localhost:8080/admin/users/roles/rest", function (data) {
+            $.each(data, function (key, value) {
+                roleRow += '<div class="form-check-inline">';
+                roleRow += '<label class="form-check-label">';
+                roleRow += '<input type="checkbox" ';
+                //проверяем роли с сервера и проставляем галки
+                if (editUserString.includes(value.name)) {
+                    roleRow += 'checked';
+                }
+                roleRow += ' id="' + value.id + '" value="' + value.name + '" class="form-check-input">' + value.name + ''; //убрал chbRole у id
+                roleRow += '</label>';
+                roleRow += '</div>';
+            });
+            $('#edit-all-roles').append(roleRow);
+        });
+    }
+
+    //функция получения ролей (checked checkboxes) с форм Add и Edit
+    function getCheckedRoles() {
+        var roles = [];
+        $.each($('input[type="checkbox"]:checked'), function () {
+            var role = {};
+            role.id = $(this).attr('id');
+            role.name = $(this).attr('value');
+            roles.push(role);
+        });
+        // alert(JSON.stringify(roles));
+        return roles;
+    }
+
+</script>-->
+</body>
+</html>
